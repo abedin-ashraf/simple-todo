@@ -2,6 +2,7 @@
 //with express.json() middleware
 
 import { createTodo, updateTodo } from './types';
+import { todo } from './db';
 // body{
 //     title: String,
 //     description: String
@@ -12,7 +13,7 @@ const port = 3000;
 
 app.use(express.json());
 
-app.post('/todo', (req, res) => {
+app.post('/todo', async (req, res) => {
     const createPayload = req.body;
     const parsedPayload = createTodo.safeParse(createPayload);
     if (!parsedPayload.success) {
@@ -21,13 +22,28 @@ app.post('/todo', (req, res) => {
         })
         return;
     }
+
+    //Put it in MongoDB
+    await todo.create({
+        title: createPayload.title,
+        description: createPayload.description,
+        completed: false
+    })
+
+    res.json({
+        msg: "Todo created"
+    })
 })
 
-app.get('/todos', (req, res) => {
+app.get('/todos', async (req, res) => {
+    const todos = await todo.find({});
+    res.json({
+        todos
+    })
 
 })
 
-app.put('/completed', (req, res) => {
+app.put('/completed', async (req, res) => {
     const updatePayload = req.body.id;
     const parsedUpdatePayload = updateTodo.safeParse(updatePayload);
     if (!parsedUpdatePayload.success) {
@@ -36,6 +52,19 @@ app.put('/completed', (req, res) => {
         })
         return;
     }
+
+    await todo.update({
+        _id: req.body.id
+    }, {
+        completed: true
+    });
+    res.json({
+        msg: "Todo marked as completed"
+    })
+
+
+
+
 })
 
 
