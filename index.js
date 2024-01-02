@@ -1,17 +1,24 @@
 //Write basic express boilerplate code,
 //with express.json() middleware
 
-import { createTodo, updateTodo } from './types';
-import { todo } from './db';
-// body{
+
 //     title: String,
 //     description: String
 // }
 const express = require('express');
+const cors = require('cors');
+
+const { createTodo, updateTodo } = require('./types');
+const { todo } = require('./db');
+// body{
 const app = express();
 const port = 3000;
 
 app.use(express.json());
+app.use(cors());
+// app.use(cors(){
+//     origin: 'http://localhost:5173/'
+// })
 
 app.post('/todo', async (req, res) => {
     const createPayload = req.body;
@@ -44,7 +51,7 @@ app.get('/todos', async (req, res) => {
 })
 
 app.put('/completed', async (req, res) => {
-    const updatePayload = req.body.id;
+    const updatePayload = req.body;
     const parsedUpdatePayload = updateTodo.safeParse(updatePayload);
     if (!parsedUpdatePayload.success) {
         res.status(411).json({
@@ -53,7 +60,7 @@ app.put('/completed', async (req, res) => {
         return;
     }
 
-    await todo.update({
+    await todo.updateOne({
         _id: req.body.id
     }, {
         completed: true
